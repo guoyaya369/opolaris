@@ -1,0 +1,42 @@
+name: Build Polaris LLVM 16.0.6 for Linux
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        repository: za233/Polaris-Obfuscator
+        ref: main
+
+    - name: Install build tools
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ninja-build cmake
+
+    - name: Configure CMake
+      run: |
+        cd src
+        cmake -B build -G Ninja \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DLLVM_ENABLE_PROJECTS="clang" \
+          -DLLVM_TARGETS_TO_BUILD="X86" \
+          -DLLVM_ENABLE_ASSERTIONS=Off
+
+    - name: Build clang
+      run: |
+        cd src
+        ninja -C build clang
+
+    - name: Package artifact
+      run: |
+        mkdir upload
+        cp src/build/bin/clang upload/
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: polaris-linux-clang
+        path: upload/
