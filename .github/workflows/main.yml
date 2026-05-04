@@ -1,4 +1,4 @@
-name: Build Polaris with gvenc fix for Linux (Full Package)
+name: Build Polaris with gvenc fix (Toolchain Bundle)
 
 on:
   workflow_dispatch:
@@ -26,13 +26,16 @@ jobs:
           -DLLVM_ENABLE_ASSERTIONS=Off \
           -DLLVM_INSTALL_TOOLCHAIN_ONLY=OFF
 
-    - name: Build clang and package
-      run: |
-        ninja -C build clang
-        ninja -C build package
+    - name: Build clang
+      run: ninja -C build clang
 
-    - name: Upload full package
-      uses: actions/upload-artifact@v4
+    - name: Bundle toolchain (clang + resources)
+      run: |
+        mkdir -p upload/clang
+        cp build/bin/clang upload/clang/
+        cp -r build/lib/clang upload/lib/ 2>/dev/null || true
+    
+    - uses: actions/upload-artifact@v4
       with:
-        name: polaris-linux-full
-        path: build/package/
+        name: polaris-linux-full-toolchain
+        path: upload/
